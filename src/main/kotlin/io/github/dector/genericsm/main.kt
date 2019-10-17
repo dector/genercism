@@ -8,8 +8,7 @@ fun main() {
         specificationsDir = File("data/problem-specifications"),
         assetsDir = File("data/assets"),
         outDir = File("generated-exercises"),
-        skipFailed = true,
-        onlyParse = false
+        skipFailed = true
     )
 
     execute(environment)
@@ -44,6 +43,10 @@ private fun execute(environment: EnvironmentCfg) {
             result.takeUnless { environment.onlyParse }
         }
         .map(CanonicalData::asExerciseMeta)
+        .onEach {
+            println(it)
+            readLine()
+        }
         .forEach { meta ->
             //generateExercise(environment, meta)
         }
