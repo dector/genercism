@@ -4,12 +4,18 @@ import io.github.dector.genericsm.models.ExerciseCase
 import io.github.dector.genericsm.models.ExerciseSpecification
 import java.io.File
 
+const val DEBUG_ALL_IN_ONE_PLACE = true
+
 fun generateExercise(environment: EnvironmentCfg, meta: ExerciseSpecification) {
     println("Generating `${meta.exercise}`...")
 
+    val exerciseOutDir = if (DEBUG_ALL_IN_ONE_PLACE)
+        File(environment.outDir, "__all-together")
+    else File(environment.outDir, meta.outDirName())
+
     generateExerciseFiles(
         assetsDir = environment.assetsDir,
-        outDir = File(environment.outDir, meta.outDirName()),
+        outDir = exerciseOutDir,
         meta = meta)
 }
 
