@@ -1,20 +1,19 @@
 package io.github.dector.genericsm
 
-import io.github.dector.genericsm.models.ExerciseData
-import io.github.dector.genericsm.models.ExerciseMeta
-import io.github.dector.genericsm.models.TestData
+import io.github.dector.genericsm.models.ExerciseCase
+import io.github.dector.genericsm.models.ExerciseSpecification
 import java.io.File
 
-fun generateExercise(assetsDir: File, outDir: File, meta: ExerciseMeta) {
-    println("Generating `${meta.id}`...")
+fun generateExercise(environment: EnvironmentCfg, meta: ExerciseSpecification) {
+    println("Generating `${meta.exercise}`...")
 
     generateExerciseFiles(
-        assetsDir = assetsDir,
-        outDir = File(outDir, meta.id),
+        assetsDir = environment.assetsDir,
+        outDir = File(environment.outDir, meta.outDirName()),
         meta = meta)
 }
 
-private fun generateExerciseFiles(assetsDir: File, outDir: File, meta: ExerciseMeta) {
+private fun generateExerciseFiles(assetsDir: File, outDir: File, meta: ExerciseSpecification) {
     outDir.mkdirs()
 
     writeExerciseSources(outDir, meta)
@@ -23,25 +22,26 @@ private fun generateExerciseFiles(assetsDir: File, outDir: File, meta: ExerciseM
     copyAssets(assetsDir, outDir)
 }
 
-private fun writeExerciseSources(outDir: File, meta: ExerciseMeta) {
+private fun writeExerciseSources(outDir: File, meta: ExerciseSpecification) {
     println("  generating sources...")
-    fun ExerciseData.file(): File = File(outDir, "src/main/kotlin/$fileName")
 
-    fun generateExerciseFile(exercise: ExerciseData): String = buildString {
-        appendln(exercise.content)
+    fun generateExerciseFile(): String {
+        val functions = meta.cases
+            .map { it.property }
+            .distinct()
+
+        return functions.joinToString("\n\n") { "fun $it() = TODO(\"Write your solution here\")" }
     }
 
-    val exercise = meta.data.exercise
-    exercise.file()
+    meta.sourceFile(outDir)
         .also { it.parentFile.mkdirs() }
-        .writeText(generateExerciseFile(exercise))
+        .writeText(generateExerciseFile())
 }
 
-private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
+private fun writeTestSources(outDir: File, meta: ExerciseSpecification) {
     println("  generating tests...")
-    fun TestData.file(): File = File(outDir, "src/test/kotlin/$name.kt")
 
-    fun generateTestFile(tests: TestData): String {
+    fun generateTestFile(): String {
         fun imports() = listOf(
             "org.junit.jupiter.api.Test",
             "org.junit.jupiter.api.Order",
@@ -51,15 +51,14 @@ private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
             .sorted()
             .joinToString("\n") { "import $it" }
 
-        fun tests() = tests
-            .entries
+        fun tests() = meta.cases
             .withIndex()
             .joinToString("\n\n") { (i, entry) ->
                 """
                     |@Test
                     |@Order($i)
-                    |fun ${entry.name}() {
-                    |${entry.content.indent()}
+                    |fun `${entry.description}`() {
+                    |    assertEquals("${entry.expected}", ${entry.functionCallAsString()})
                     |}
                 """.trimMargin()
             }
@@ -68,17 +67,16 @@ private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
            |${imports()}
            | 
            |@TestMethodOrder(OrderAnnotation::class)
-           |class ${tests.name} {
+           |class ${meta.className()}Test {
            |
            |${tests().indent()}
            |}
         """.trimMargin()
     }
 
-    val tests = meta.data.tests
-    tests.file()
+    meta.testSourceFile(outDir)
         .also { it.parentFile.mkdirs() }
-        .writeText(generateTestFile(tests))
+        .writeText(generateTestFile())
 }
 
 private fun writeBuildGradleSource(outDir: File) {
@@ -132,3 +130,27 @@ private fun String.indent(times: Int = 1): String = this
             it
         else ("    ".repeat(times) + it)
     }
+
+private fun ExerciseSpecification.outDirName(): String = exercise
+
+private fun ExerciseSpecification.className(postfix: String = ""): String =
+    exercise
+        .split("-")
+        .joinToString("", postfix = postfix) { it.capitalize() }
+
+private fun ExerciseSpecification.fileName(postfix: String = ""): String =
+    this.className(postfix) + ".kt"
+
+fun ExerciseSpecification.sourceFile(outDir: File): File =
+    File(outDir, "src/main/kotlin/${fileName()}")
+
+fun ExerciseSpecification.testSourceFile(outDir: File): File =
+    File(outDir, "src/test/kotlin/${fileName("Test")}.kt")
+
+private fun ExerciseCase.functionCallAsString(): String = run {
+    val name = property
+
+    if (input.isEmpty())
+        "$name()"
+    else "$name(${TODO()})"
+}

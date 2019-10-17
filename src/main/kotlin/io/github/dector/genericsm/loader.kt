@@ -1,11 +1,15 @@
 package io.github.dector.genericsm
 
-import io.github.dector.genericsm.models.ExerciseMeta
 import java.io.File
 
-fun loadExercisesData(exercisesDir: File, parser: ExerciseParser = ExerciseParser.Default): Sequence<ExerciseMeta> =
-    exercisesDir.listFiles()!!
-        .filter(File::isFile)
-        .filter { it.name.endsWith(".json") }
-        .asSequence()
-        .map(parser::parseExercise)
+private val DEV_EXERCISES = listOf(
+    "hello-world"
+)
+
+fun loadExercisesDataFiles(environment: EnvironmentCfg): List<File> =
+    environment.specificationsDir
+        .resolve("exercises")
+        .listFiles()!!
+        .filter { DEV_EXERCISES.contains(it.name) }
+        .map { it.resolve("canonical-data.json") }
+        .filter(File::exists)
