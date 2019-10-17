@@ -61,7 +61,11 @@ private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
 
         fun Pair<Any, Type>.formatValueAsCode(): String = when (second) {
             Type.String -> "\"$first\""
-            Type.Int, Type.Double -> "$first"
+            Type.Int, Type.Double, Type.Boolean -> "$first"
+            Type.Array -> "listOf(${(first as List<Pair<Any, Type>>).joinToString { it.formatValueAsCode() }})"
+            Type.Map -> "mapOf(${(first as Map<String, Pair<Any, Type>>).entries
+                .joinToString { (key, value) -> "$key: " + value.formatValueAsCode() }})"
+            Type.Null -> "null"
             else -> error("Undefined type: $second")
         }
 

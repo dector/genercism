@@ -26,7 +26,10 @@ private fun CanonicalData.asTestData(functions: List<FunctionData>): TestData {
     val testCases = flatten(cases)
         .groupBy { it.property }
         .flatMap { entry ->
-            entry.value.map { test ->
+            entry.value.mapNotNull { test ->
+                // FIXME make `map{}`
+                if (test.expected is ExpectedValue.Error) return@mapNotNull null
+
                 val name = test.description
                 val function = functions.first { it.name == test.property }
                 val arguments = test.input.map { it.key to it.value.asValuePair() }.toMap()
@@ -109,7 +112,7 @@ data class FunctionData(
 )
 
 enum class Type {
-    String, Int, Double, // TODO
+    String, Int, Double, Boolean, Array, Map, Null, // TODO
 
     Unknown;     // fixme
 
@@ -120,6 +123,10 @@ private fun Type.Companion.from(value: InputValue) = when (value) {
     is InputValue.StringValue -> Type.String
     is InputValue.IntValue -> Type.Int
     is InputValue.DoubleValue -> Type.Double
+    is InputValue.BooleanValue -> Type.Boolean
+    is InputValue.ArrayValue -> Type.Array
+    is InputValue.MapValue -> Type.Map
+    is InputValue.NullValue -> Type.Null
     else -> error("Unknown type for input value: ${value::class}")
 }
 
@@ -127,6 +134,11 @@ private fun Type.Companion.from(value: ExpectedValue) = when (value) {
     is ExpectedValue.StringValue -> Type.String
     is ExpectedValue.IntValue -> Type.Int
     is ExpectedValue.DoubleValue -> Type.Double
+    is ExpectedValue.BooleanValue -> Type.Boolean
+    is ExpectedValue.ArrayValue -> Type.Array
+    is ExpectedValue.MapValue -> Type.Map
+    is ExpectedValue.NullValue -> Type.Null
+    is ExpectedValue.Error -> Type.Unknown  // Fixme
     else -> error("Unknown type for expected value: ${value::class}")
 }
 
@@ -134,6 +146,10 @@ private fun InputValue.asValuePair(): Pair<Any, Type> = when (this) {
     is InputValue.StringValue -> value to Type.String
     is InputValue.IntValue -> value to Type.Int
     is InputValue.DoubleValue -> value to Type.Double
+    is InputValue.BooleanValue -> value to Type.Boolean
+    is InputValue.ArrayValue -> values.map { it.asValuePair() } to Type.Array
+    is InputValue.MapValue -> value.mapValues { (_, it) -> it.asValuePair() } to Type.Map
+    is InputValue.NullValue -> "" to Type.Null
     else -> error("Unknown type for input value: ${this::class}")
 }
 
@@ -141,5 +157,9 @@ private fun ExpectedValue.asValuePair(): Pair<Any, Type> = when (this) {
     is ExpectedValue.StringValue -> value to Type.String
     is ExpectedValue.IntValue -> value to Type.Int
     is ExpectedValue.DoubleValue -> value to Type.Double
+    is ExpectedValue.BooleanValue -> value to Type.Boolean
+    is ExpectedValue.ArrayValue -> values.map { it.asValuePair() } to Type.Array
+    is ExpectedValue.MapValue -> value.mapValues { (_, it) -> it?.asValuePair() ?: ("" to Type.Null) } to Type.Map
+    is ExpectedValue.NullValue -> "" to Type.Null
     else -> error("Unknown type for expected value: ${this::class}")
 }

@@ -43,10 +43,10 @@ private fun execute(environment: EnvironmentCfg) {
             result.takeUnless { environment.onlyParse }
         }
         .map(CanonicalData::asExerciseMeta)
-        .onEach {
+        /*.onEach {
             println(it)
             readLine()
-        }
+        }*/
         .forEach { meta ->
             generateExercise(environment, meta)
         }
