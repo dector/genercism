@@ -63,7 +63,7 @@ sealed class InputValue {
     data class IntValue(val value: Int) : InputValue()
     data class DoubleValue(val value: Double) : InputValue()
     data class ArrayValue(val values: List<InputValue>) : InputValue()
-    data class MapValue(val value: Map<*, *>) : InputValue()    // TODO
+    data class MapValue(val value: Map<String, InputValue>) : InputValue()
 }
 
 sealed class ExpectedValue {
@@ -73,7 +73,9 @@ sealed class ExpectedValue {
     data class IntValue(val value: Int) : ExpectedValue()
     data class DoubleValue(val value: Double) : ExpectedValue()
     data class ArrayValue(val values: List<ExpectedValue>) : ExpectedValue()
-    data class MapValue(val value: Map<*, *>) : ExpectedValue()    // TODO
+    data class MapValue(val value: Map<String, ExpectedValue?>) : ExpectedValue()
+
+    data class Error(val message: String) : ExpectedValue()
 }
 
 private fun Any.asComments(): List<String> =
@@ -107,7 +109,7 @@ private fun Map<String, Any>.asLabeledTestGroup(): LabeledTestGroup {
 private fun Map<String, Any>.asLabeledTest(): LabeledTest {
     return LabeledTest(
         description = this["description"] as String,
-        expected = getValue("expected").asExpected(),
+        expected = getValue("expected").asExpectedValue(),
         input = getValue("input").asInputObject(),
         optional = this["optional"]?.let { it as String },
         property = this["property"] as String,
@@ -127,9 +129,9 @@ private fun Any.asInputObject(): Map<String, InputValue> {
             InputValue.DoubleValue(value)
         is List<*> ->
             InputValue.ArrayValue(
-                value.filterNotNull().map { parseValue(it) })
+                value.map { parseValue(it) })
         is Map<*, *> ->
-            InputValue.MapValue(value)
+            InputValue.MapValue(value.asInputObject())
         null ->
             InputValue.NullValue
         else ->
@@ -141,7 +143,7 @@ private fun Any.asInputObject(): Map<String, InputValue> {
         .toMap()
 }
 
-private fun Any.asExpected(): ExpectedValue {
+private fun Any.asExpectedValue(): ExpectedValue {
     fun parseValue(value: Any?): ExpectedValue = when (value) {
         is String ->
             ExpectedValue.StringValue(value)
@@ -153,9 +155,13 @@ private fun Any.asExpected(): ExpectedValue {
             ExpectedValue.DoubleValue(value)
         is List<*> ->
             ExpectedValue.ArrayValue(
-                value.filterNotNull().map { parseValue(it) })
-        is Map<*, *> ->
-            ExpectedValue.MapValue(value)
+                value.map { parseValue(it) })
+        is Map<*, *> -> if (value["error"] != null) {
+            val data = value as Map<String, Any>
+            ExpectedValue.Error(data.getValue("error") as String)
+        } else {
+            ExpectedValue.MapValue(value.asExpectedValueMap())
+        }
         null ->
             ExpectedValue.NullValue
         else ->
@@ -163,4 +169,10 @@ private fun Any.asExpected(): ExpectedValue {
     }
 
     return parseValue(this)
+}
+
+private fun Map<*, *>.asExpectedValueMap(): Map<String, ExpectedValue?> {
+    return (this as Map<String, Any?>)
+        .map { (key, value) -> key to value?.asExpectedValue() }
+        .toMap()
 }
