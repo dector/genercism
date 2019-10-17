@@ -30,7 +30,13 @@ private fun writeExerciseSources(outDir: File, meta: ExerciseSpecification) {
             .map { it.property }
             .distinct()
 
-        return functions.joinToString("\n\n") { "fun $it() = TODO(\"Write your solution here\")" }
+        fun params() = meta.cases
+            .flatMap { it.input.entries }
+            .distinctBy { it.key }
+            .map { it.key to inputType(it.value) }
+            .joinToString { (key, type) -> "$key: $type" }
+
+        return functions.joinToString("\n\n") { "fun $it(${params()}): String = TODO(\"Write your solution here\")" }
     }
 
     meta.sourceFile(outDir)
@@ -150,7 +156,14 @@ fun ExerciseSpecification.testSourceFile(outDir: File): File =
 private fun ExerciseCase.functionCallAsString(): String = run {
     val name = property
 
-    if (input.isEmpty())
-        "$name()"
-    else "$name(${TODO()})"
+    fun args(): String =
+        input.values.joinToString { "\"$it\"" }
+
+    "$name(${args()})"
+}
+
+private fun inputType(value: Any?): String = when (value) {
+    is String -> "String"
+    is Int -> "Int"
+    else -> error("Undefined type of value: `$value`.")
 }

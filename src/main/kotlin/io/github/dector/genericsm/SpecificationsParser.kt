@@ -9,6 +9,10 @@ class SpecificationsParser {
 
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
+//        .add(PolymorphicJsonAdapterFactory.of(Input::class.java, "__type")
+//            .withSubtype(Input.Empty::class.java, Input.Empty::class.java.simpleName)
+//            .withSubtype(Input.Valued::class.java, Input.Valued::class.java.simpleName)
+//        )
         .build()
 
     fun parse(file: File): ExerciseSpecification {

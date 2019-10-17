@@ -9,10 +9,6 @@ data class ExerciseSpecification(
 data class ExerciseCase(
     val description: String,
     val property: String,
-//    val input: Input,
-    val input: Map<String, Any>,
+    val input: Map<String, Any?>,
     val expected: String
-) {
-
-    class Input
-}
+)

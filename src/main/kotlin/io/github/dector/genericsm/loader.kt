@@ -3,7 +3,8 @@ package io.github.dector.genericsm
 import java.io.File
 
 private val DEV_EXERCISES = listOf(
-    "hello-world"
+    "hello-world",
+    "reverse-string"
 )
 
 fun loadExercisesDataFiles(environment: EnvironmentCfg): List<File> =

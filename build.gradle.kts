@@ -9,6 +9,7 @@ dependencies {
     implementation(Deps.kotlin_coroutines)
 
     implementation(Deps.moshi)
+    implementation(Deps.moshi_adapters)
     implementation(Deps.moshi_kotlin)
     //implementation(Deps.kotlinpoet)
 
