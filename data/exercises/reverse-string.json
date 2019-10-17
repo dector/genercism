@@ -1,0 +1,35 @@
+{
+    "scheme": "1",
+    "id": "reverse-string",
+    "data": {
+        "exercise": {
+            "fileName": "ReverseString.kt",
+            "content": "fun reverse(str: String): String = TODO()"
+        },
+        "tests": {
+            "fileName": "ReverseStringTest.kt",
+            "entries": [
+                {
+                    "name": "testAnEmptyString",
+                    "content": "assertEquals(\"\", reverse(\"\"))"
+                },
+                {
+                    "name": "testAWord",
+                    "content": "assertEquals(\"tobor\", reverse(\"robot\"))"
+                },
+                {
+                    "name": "testACapitalizedWord",
+                    "content": "assertEquals(\"nemaR\", reverse(\"Ramen\"))"
+                },
+                {
+                    "name": "testASentenceWithPunctuation",
+                    "content": "assertEquals(\"!yrgnuh m'I\", reverse(\"I'm hungry!\"))"
+                },
+                {
+                    "name": "testAPalindrome",
+                    "content": "assertEquals(\"racecar\", reverse(\"racecar\"))"
+                }
+            ]
+        }
+    }
+}
