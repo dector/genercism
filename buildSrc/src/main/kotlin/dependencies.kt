@@ -4,6 +4,8 @@ object Deps {
 
     const val moshi = "com.squareup.moshi:moshi:${Versions.moshi}"
     const val moshi_kotlin = "com.squareup.moshi:moshi-kotlin:${Versions.moshi}"
+
+    //const val kotlinpoet = "com.squareup:kotlinpoet:${Versions.kotlinepoet}"
 }
 
 object Versions {
@@ -12,4 +14,5 @@ object Versions {
     const val kotlin_test = "3.4.2"
 
     const val moshi = "1.8.0"
+    //const val kotlinepoet = "1.4.0"
 }

@@ -10,6 +10,7 @@ dependencies {
 
     implementation(Deps.moshi)
     implementation(Deps.moshi_kotlin)
+    //implementation(Deps.kotlinpoet)
 
     testImplementation(Deps.kotlin_test)
 }

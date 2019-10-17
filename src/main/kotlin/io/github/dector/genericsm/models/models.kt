@@ -1,23 +1,23 @@
 package io.github.dector.genericsm.models
 
 data class ExerciseMeta(
-    val scheme: Int,
+    val schema: String,
     val id: String,
-    val data: ExerciseData
+    val data: ExerciseRoot
 )
 
-data class ExerciseData(
-    val exercise: ExerciseFile,
+data class ExerciseRoot(
+    val exercise: ExerciseData,
     val tests: TestData
 )
 
-data class ExerciseFile(
+data class ExerciseData(
     val fileName: String,
     val content: String
 )
 
 data class TestData(
-    val fileName: String,
+    val name: String,
     val entries: List<TestEntry>
 )
 

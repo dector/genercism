@@ -9,12 +9,10 @@ fun main() {
     execute(exercisesDir, outDir)
 }
 
-private fun execute(exercisesDir: File, outDir: File) {
-    if (!outDir.exists()) outDir.mkdirs()
-
+private fun execute(sourceDir: File, outDir: File) {
     println("Loading exercises")
 
-    loadExercisesData(exercisesDir)
+    loadExercisesData(sourceDir)
         .forEach { generateExercise(outDir, it) }
 
     println("Done")

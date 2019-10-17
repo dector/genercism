@@ -1,5 +1,5 @@
 {
-    "scheme": "1",
+    "schema": "1.0",
     "id": "reverse-string",
     "data": {
         "exercise": {
@@ -7,7 +7,7 @@
             "content": "fun reverse(str: String): String = TODO()"
         },
         "tests": {
-            "fileName": "ReverseStringTest.kt",
+            "name": "ReverseStringTest",
             "entries": [
                 {
                     "name": "testAnEmptyString",
