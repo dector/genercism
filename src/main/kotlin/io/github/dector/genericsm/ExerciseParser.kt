@@ -15,4 +15,9 @@ class ExerciseParser {
         moshi.adapter(ExerciseMeta::class.java)
             .fromJson(file.readText())
             ?: error("Can't read exercises from: ${file.absolutePath}")
+
+    companion object {
+
+        val Default = ExerciseParser()
+    }
 }
