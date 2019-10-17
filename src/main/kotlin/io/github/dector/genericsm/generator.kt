@@ -6,7 +6,7 @@ import io.github.dector.genericsm.models.TestData
 import java.io.File
 
 fun generateExercise(outDir: File, meta: ExerciseMeta) {
-    println("Generating sources for `${meta.id}`")
+    println("Generating sources for `${meta.id}`...")
 
     generateExerciseFiles(
         outDir = File(outDir, meta.id),
@@ -36,24 +36,29 @@ private fun writeExerciseSources(outDir: File, meta: ExerciseMeta) {
 private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
     fun TestData.file(): File = File(outDir, "test/main/kotlin/$name.kt")
 
-    fun generateTestFile(tests: TestData): String = buildString {
-        listOf("org.junit.Test", "kotlin.test.*")
-            .forEach { appendln("import $it") }
-        appendln()
+    fun generateTestFile(tests: TestData): String {
+        fun imports() = listOf("org.junit.Test", "kotlin.test.*")
+            .joinToString("\n") { "import $it" }
 
-        appendln("class ${tests.name} {")
-        appendln()
-
-        tests.entries.forEach { entry ->
-            indent(); appendln("@Test")
-            indent(); appendln("fun ${entry.name}() {")
-            entry.content.lines().forEach {
-                indent(2); appendln(it)
+        fun tests() = tests
+            .entries
+            .joinToString("\n\n") { entry ->
+                """
+                    |@Test
+                    |fun ${entry.name}() {
+                    |${entry.content.indent()}
+                    |}
+                """.trimMargin()
             }
-            indent(); appendln("}")
-            appendln()
-        }
-        appendln("}")
+
+        return """
+           |${imports()}
+           | 
+           |class ${tests.name} {
+           |
+           |${tests().indent()}
+           |}
+        """.trimMargin()
     }
 
     val tests = meta.data.tests
@@ -62,4 +67,10 @@ private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
         .writeText(generateTestFile(tests))
 }
 
-private fun StringBuilder.indent(times: Int = 1) = repeat(times) { append("    ") }
+private fun String.indent(times: Int = 1): String = this
+    .lines()
+    .joinToString("\n") {
+        if (it.isEmpty())
+            it
+        else ("    ".repeat(times) + it)
+    }

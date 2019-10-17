@@ -10,10 +10,10 @@ fun main() {
 }
 
 private fun execute(sourceDir: File, outDir: File) {
-    println("Loading exercises")
+    println("Loading exercises...")
 
     loadExercisesData(sourceDir)
         .forEach { generateExercise(outDir, it) }
 
-    println("Done")
+    println("Done!")
 }
