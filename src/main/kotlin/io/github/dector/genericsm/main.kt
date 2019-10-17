@@ -33,7 +33,10 @@ private fun execute(environment: EnvironmentCfg) {
 
             val result = if (environment.skipFailed) {
                 parseResult
-                    .onFailure { println("Skipping failed `${file.parentFile.name}`") }
+                    .onFailure {
+                        it.printStackTrace()
+                        println("Skipping `${file.parentFile.name}`")
+                    }
                     .getOrNull()
             } else parseResult.getOrThrow()
 
