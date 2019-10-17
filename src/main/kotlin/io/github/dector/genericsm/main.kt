@@ -18,6 +18,7 @@ private fun execute(environment: EnvironmentCfg) {
     loadExercisesDataFiles(environment)
         .also { println("  found ${it.size} exercises") }
         .asSequence()
+        .onEach { println("Processing `${it.parentFile.name}`") }
         .map(environment.parser::parse)
         .forEach { generateExercise(environment, it) }
 

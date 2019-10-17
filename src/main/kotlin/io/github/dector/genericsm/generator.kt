@@ -7,7 +7,7 @@ import java.io.File
 const val DEBUG_ALL_IN_ONE_PLACE = true
 
 fun generateExercise(environment: EnvironmentCfg, meta: ExerciseSpecification) {
-    println("Generating `${meta.exercise}`...")
+    //println("Generating `${meta.exercise}`...")
 
     val exerciseOutDir = if (DEBUG_ALL_IN_ONE_PLACE)
         File(environment.outDir, "__all-together")
@@ -171,5 +171,6 @@ private fun ExerciseCase.functionCallAsString(): String = run {
 private fun inputType(value: Any?): String = when (value) {
     is String -> "String"
     is Int -> "Int"
+    is Double -> "Double"
     else -> error("Undefined type of value: `$value`.")
 }
