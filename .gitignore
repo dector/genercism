@@ -12,3 +12,5 @@ build/
 # Kotlin test
 .kotlintest/
 
+# Generated exercises
+generated-exercises/

@@ -1,4 +1,4 @@
-package io.github.dector.project
+package io.github.dector.genericsm
 
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
