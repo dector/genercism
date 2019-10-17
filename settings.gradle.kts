@@ -1,4 +1,4 @@
-rootProject.name = "PROJECT_NAME"
+rootProject.name = "genercism"
 
 //include(
 //    ":lib1",
