@@ -2,7 +2,6 @@ package io.github.dector.genericsm
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
-import io.github.dector.genericsm.InputValue.StringValue
 import io.github.dector.genericsm.LabeledTestItem.LabeledTest
 import io.github.dector.genericsm.LabeledTestItem.LabeledTestGroup
 import java.io.File
@@ -60,10 +59,21 @@ sealed class InputValue {
 
     object NullValue : InputValue()
     data class StringValue(val value: String) : InputValue()
+    data class BooleanValue(val value: Boolean) : InputValue()
     data class IntValue(val value: Int) : InputValue()
     data class DoubleValue(val value: Double) : InputValue()
     data class ArrayValue(val values: List<InputValue>) : InputValue()
     data class MapValue(val value: Map<*, *>) : InputValue()    // TODO
+}
+
+sealed class ExpectedValue {
+    object NullValue : ExpectedValue()
+    data class StringValue(val value: String) : ExpectedValue()
+    data class BooleanValue(val value: Boolean) : ExpectedValue()
+    data class IntValue(val value: Int) : ExpectedValue()
+    data class DoubleValue(val value: Double) : ExpectedValue()
+    data class ArrayValue(val values: List<ExpectedValue>) : ExpectedValue()
+    data class MapValue(val value: Map<*, *>) : ExpectedValue()    // TODO
 }
 
 private fun Any.asComments(): List<String> =
@@ -97,8 +107,8 @@ private fun Map<String, Any>.asLabeledTestGroup(): LabeledTestGroup {
 private fun Map<String, Any>.asLabeledTest(): LabeledTest {
     return LabeledTest(
         description = this["description"] as String,
-        expected = Unit, // fixme
-        input = this.getValue("input").asInputObject(),
+        expected = getValue("expected").asExpected(),
+        input = getValue("input").asInputObject(),
         optional = this["optional"]?.let { it as String },
         property = this["property"] as String,
         comments = this["comments"]?.asComments()
@@ -108,7 +118,9 @@ private fun Map<String, Any>.asLabeledTest(): LabeledTest {
 private fun Any.asInputObject(): Map<String, InputValue> {
     fun parseValue(value: Any?): InputValue = when (value) {
         is String ->
-            StringValue(value)
+            InputValue.StringValue(value)
+        is Boolean ->
+            InputValue.BooleanValue(value)
         is Int ->
             InputValue.IntValue(value)
         is Double ->
@@ -127,4 +139,28 @@ private fun Any.asInputObject(): Map<String, InputValue> {
     return (this as Map<String, Any?>)
         .map { (key, value) -> key to parseValue(value) }
         .toMap()
+}
+
+private fun Any.asExpected(): ExpectedValue {
+    fun parseValue(value: Any?): ExpectedValue = when (value) {
+        is String ->
+            ExpectedValue.StringValue(value)
+        is Boolean ->
+            ExpectedValue.BooleanValue(value)
+        is Int ->
+            ExpectedValue.IntValue(value)
+        is Double ->
+            ExpectedValue.DoubleValue(value)
+        is List<*> ->
+            ExpectedValue.ArrayValue(
+                value.filterNotNull().map { parseValue(it) })
+        is Map<*, *> ->
+            ExpectedValue.MapValue(value)
+        null ->
+            ExpectedValue.NullValue
+        else ->
+            error("Unknown type: ${value::class}")
+    }
+
+    return parseValue(this)
 }
