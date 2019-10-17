@@ -48,7 +48,7 @@ private fun execute(environment: EnvironmentCfg) {
             readLine()
         }
         .forEach { meta ->
-            //generateExercise(environment, meta)
+            generateExercise(environment, meta)
         }
 
     println()
@@ -72,4 +72,5 @@ data class EnvironmentCfg(
     val parser: CanonicalDataParser = CanonicalDataParser(),
     val skipFailed: Boolean = false,
     val onlyParse: Boolean = false
+    //, val dryRun: Boolean = false
 )

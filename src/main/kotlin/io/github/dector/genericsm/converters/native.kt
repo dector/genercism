@@ -23,18 +23,38 @@ private fun CanonicalData.asSourceData(functions: List<FunctionData>): SourceDat
 }
 
 private fun CanonicalData.asTestData(functions: List<FunctionData>): TestData {
-    return TestData(Unit)
-}
+    val testCases = flatten(cases)
+        .groupBy { it.property }
+        .flatMap { entry ->
+            entry.value.map { test ->
+                val name = test.description
+                val function = functions.first { it.name == test.property }
+                val arguments = test.input.map { it.key to it.value.asValuePair() }.toMap()
+                val expectedResult = test.expected.asValuePair()
 
-private fun CanonicalData.collectFunctions(): List<FunctionData> {
-    fun flatten(data: List<LabeledTestItem>): List<LabeledTest> =
-        data.flatMap {
-            when (it) {
-                is LabeledTest -> listOf(it)
-                is LabeledTestGroup -> flatten(it.cases)
+                TestCase(
+                    name = name,
+                    function = function,
+                    arguments = arguments,
+                    expectedResult = expectedResult
+                )
             }
         }
 
+    return TestData(
+        cases = testCases
+    )
+}
+
+private fun flatten(data: List<LabeledTestItem>): List<LabeledTest> =
+    data.flatMap {
+        when (it) {
+            is LabeledTest -> listOf(it)
+            is LabeledTestGroup -> flatten(it.cases)
+        }
+    }
+
+private fun CanonicalData.collectFunctions(): List<FunctionData> {
     return flatten(cases)
         .fold(mutableListOf<Triple<String, Type, List<Pair<String, Type>>>>()) { acc, case ->
             val alreadyHasFunction = acc.any { it.first == case.property }
@@ -71,7 +91,16 @@ data class SourceData(
     val functions: List<FunctionData>
 )
 
-data class TestData(val empty: Unit)
+data class TestData(
+    val cases: List<TestCase>
+)
+
+data class TestCase(
+    val name: String,
+    val function: FunctionData,
+    val arguments: Map<String, Pair<Any, Type>>,
+    val expectedResult: Pair<Any, Type>
+)
 
 data class FunctionData(
     val name: String,
@@ -99,4 +128,18 @@ private fun Type.Companion.from(value: ExpectedValue) = when (value) {
     is ExpectedValue.IntValue -> Type.Int
     is ExpectedValue.DoubleValue -> Type.Double
     else -> error("Unknown type for expected value: ${value::class}")
+}
+
+private fun InputValue.asValuePair(): Pair<Any, Type> = when (this) {
+    is InputValue.StringValue -> value to Type.String
+    is InputValue.IntValue -> value to Type.Int
+    is InputValue.DoubleValue -> value to Type.Double
+    else -> error("Unknown type for input value: ${this::class}")
+}
+
+private fun ExpectedValue.asValuePair(): Pair<Any, Type> = when (this) {
+    is ExpectedValue.StringValue -> value to Type.String
+    is ExpectedValue.IntValue -> value to Type.Int
+    is ExpectedValue.DoubleValue -> value to Type.Double
+    else -> error("Unknown type for expected value: ${this::class}")
 }
