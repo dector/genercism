@@ -2,6 +2,7 @@ package io.github.dector.genericsm
 
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
+import io.github.dector.genericsm.InputValue.StringValue
 import io.github.dector.genericsm.LabeledTestItem.LabeledTest
 import io.github.dector.genericsm.LabeledTestItem.LabeledTestGroup
 import java.io.File
@@ -38,12 +39,10 @@ data class CanonicalData(
 
 sealed class LabeledTestItem {
 
-    object Empty : LabeledTestItem()
-
     data class LabeledTest(
         val description: String,
         val property: String,
-        val input: Any, // fixme
+        val input: Map<String, InputValue>,
         val expected: Any,  // fixme
         val comments: List<String>?,
         val optional: String?
@@ -55,6 +54,16 @@ sealed class LabeledTestItem {
         val comments: List<String>?,
         val optional: String?
     ) : LabeledTestItem()
+}
+
+sealed class InputValue {
+
+    object NullValue : InputValue()
+    data class StringValue(val value: String) : InputValue()
+    data class IntValue(val value: Int) : InputValue()
+    data class DoubleValue(val value: Double) : InputValue()
+    data class ArrayValue(val values: List<InputValue>) : InputValue()
+    data class MapValue(val value: Map<*, *>) : InputValue()    // TODO
 }
 
 private fun Any.asComments(): List<String> =
@@ -89,9 +98,33 @@ private fun Map<String, Any>.asLabeledTest(): LabeledTest {
     return LabeledTest(
         description = this["description"] as String,
         expected = Unit, // fixme
-        input = Unit, // fixme
+        input = this.getValue("input").asInputObject(),
         optional = this["optional"]?.let { it as String },
         property = this["property"] as String,
         comments = this["comments"]?.asComments()
     )
+}
+
+private fun Any.asInputObject(): Map<String, InputValue> {
+    fun parseValue(value: Any?): InputValue = when (value) {
+        is String ->
+            StringValue(value)
+        is Int ->
+            InputValue.IntValue(value)
+        is Double ->
+            InputValue.DoubleValue(value)
+        is List<*> ->
+            InputValue.ArrayValue(
+                value.filterNotNull().map { parseValue(it) })
+        is Map<*, *> ->
+            InputValue.MapValue(value)
+        null ->
+            InputValue.NullValue
+        else ->
+            error("Unknown type: ${value::class}")
+    }
+
+    return (this as Map<String, Any?>)
+        .map { (key, value) -> key to parseValue(value) }
+        .toMap()
 }
