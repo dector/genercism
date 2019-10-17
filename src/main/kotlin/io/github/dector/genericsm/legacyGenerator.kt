@@ -4,11 +4,7 @@ import io.github.dector.genericsm.models.ExerciseCase
 import io.github.dector.genericsm.models.ExerciseSpecification
 import java.io.File
 
-const val DEBUG_ALL_IN_ONE_PLACE = true
-
 fun generateExercise(environment: EnvironmentCfg, meta: ExerciseSpecification) {
-    //println("Generating `${meta.exercise}`...")
-
     val exerciseOutDir = if (DEBUG_ALL_IN_ONE_PLACE)
         File(environment.outDir, "__all-together")
     else File(environment.outDir, meta.outDirName())
@@ -153,10 +149,10 @@ private fun ExerciseSpecification.className(postfix: String = ""): String =
 private fun ExerciseSpecification.fileName(postfix: String = ""): String =
     this.className(postfix) + ".kt"
 
-fun ExerciseSpecification.sourceFile(outDir: File): File =
+private fun ExerciseSpecification.sourceFile(outDir: File): File =
     File(outDir, "src/main/kotlin/${fileName()}")
 
-fun ExerciseSpecification.testSourceFile(outDir: File): File =
+private fun ExerciseSpecification.testSourceFile(outDir: File): File =
     File(outDir, "src/test/kotlin/${fileName("Test")}.kt")
 
 private fun ExerciseCase.functionCallAsString(): String = run {

@@ -1,5 +1,6 @@
 package io.github.dector.genericsm
 
+import io.github.dector.genericsm.converters.asExerciseMeta
 import java.io.File
 
 fun main() {
@@ -8,7 +9,7 @@ fun main() {
         assetsDir = File("data/assets"),
         outDir = File("generated-exercises"),
         skipFailed = true,
-        onlyParse = true
+        onlyParse = false
     )
 
     execute(environment)
@@ -42,7 +43,8 @@ private fun execute(environment: EnvironmentCfg) {
 
             result.takeUnless { environment.onlyParse }
         }
-        .forEach { canonical ->
+        .map(CanonicalData::asExerciseMeta)
+        .forEach { meta ->
             //generateExercise(environment, meta)
         }
 
