@@ -3,7 +3,7 @@ package io.github.dector.genericsm
 import java.io.File
 
 private val LOAD_ONLY_FROM = listOf<String>(
-    "pov"
+//    "pov"
 )
 
 fun loadExercisesDataFiles(environment: EnvironmentCfg): List<File> =

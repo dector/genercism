@@ -42,8 +42,8 @@ private fun execute(environment: EnvironmentCfg) {
 
             result.takeUnless { environment.onlyParse }
         }
-        .forEach { meta ->
-            generateExercise(environment, meta)
+        .forEach { canonical ->
+            //generateExercise(environment, meta)
         }
 
     println()
@@ -64,7 +64,7 @@ data class EnvironmentCfg(
     val specificationsDir: File,
     val assetsDir: File,
     val outDir: File,
-    val parser: SpecificationsParser = SpecificationsParser(),
+    val parser: CanonicalDataParser = CanonicalDataParser(),
     val skipFailed: Boolean = false,
     val onlyParse: Boolean = false
 )
