@@ -4,16 +4,17 @@ import java.io.File
 
 fun main() {
     val exercisesDir = File("data/exercises")
+    val assetsDir = File("data/assets")
     val outDir = File("generated-exercises")
 
-    execute(exercisesDir, outDir)
+    execute(assetsDir, exercisesDir, outDir)
 }
 
-private fun execute(sourceDir: File, outDir: File) {
+private fun execute(assetsDir: File, sourceDir: File, outDir: File) {
     println("Loading exercises...")
 
     loadExercisesData(sourceDir)
-        .forEach { generateExercise(outDir, it) }
+        .forEach { generateExercise(assetsDir, outDir, it) }
 
     println("Done!")
 }
