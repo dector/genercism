@@ -1,6 +1,6 @@
 package io.github.dector.genericsm
 
-const val DEBUG_ALL_IN_ONE_PLACE = true
+const val DEBUG_ALL_IN_ONE_PLACE = false
 
 /*
 fun generateExercise(environment: EnvironmentCfg, meta: CanonicalData) {

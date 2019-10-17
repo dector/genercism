@@ -22,8 +22,8 @@ private fun generateExerciseFiles(assetsDir: File, outDir: File, meta: ExerciseM
 
     writeExerciseSources(outDir, meta)
     writeTestSources(outDir, meta)
-    //writeBuildGradleSource(outDir)       // FIXME
-    //copyAssets(assetsDir, outDir)
+    writeBuildGradleSource(outDir)
+    copyAssets(assetsDir, outDir)
 }
 
 private fun writeExerciseSources(outDir: File, meta: ExerciseMeta) {
