@@ -42,7 +42,7 @@ sealed class LabeledTestItem {
         val description: String,
         val property: String,
         val input: Map<String, InputValue>,
-        val expected: Any,  // fixme
+        val expected: ExpectedValue,
         val comments: List<String>?,
         val optional: String?
     ) : LabeledTestItem()

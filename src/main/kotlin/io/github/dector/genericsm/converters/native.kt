@@ -1,6 +1,8 @@
 package io.github.dector.genericsm.converters
 
 import io.github.dector.genericsm.CanonicalData
+import io.github.dector.genericsm.ExpectedValue
+import io.github.dector.genericsm.InputValue
 import io.github.dector.genericsm.LabeledTestItem
 import io.github.dector.genericsm.LabeledTestItem.LabeledTest
 import io.github.dector.genericsm.LabeledTestItem.LabeledTestGroup
@@ -15,12 +17,8 @@ fun CanonicalData.asExerciseMeta(): ExerciseMeta {
 }
 
 private fun CanonicalData.asSourceData(functions: List<FunctionData>): SourceData {
-    fun findFunctions(): List<FunctionData> {
-        return emptyList()//fixme
-    }
-
     return SourceData(
-        functions = findFunctions()
+        functions = functions
     )
 }
 
@@ -38,22 +36,26 @@ private fun CanonicalData.collectFunctions(): List<FunctionData> {
         }
 
     return flatten(cases)
-        .fold(mutableMapOf<String, MutableList<Pair<String, Type>>>()) { acc, case ->
-            if (!acc.containsKey(case.property)) {
-                acc += case.property to mutableListOf()
+        .fold(mutableListOf<Triple<String, Type, List<Pair<String, Type>>>>()) { acc, case ->
+            val alreadyHasFunction = acc.any { it.first == case.property }
+
+            if (!alreadyHasFunction) {
+                val args = case.input.map { (name, value) ->
+                    name to Type.from(value)
+                }.toList()
+                val returnType = Type.from(case.expected)
+                acc += Triple(case.property, returnType, args)
             } else {
                 //todo
             }
 
             acc
         }
-//        .distinctBy { it.property }
-//        .onEach { println(it) }
-        .map { (name, args) ->
+        .map { (name, returnType, args) ->
             FunctionData(
                 name = name,
-                returnType = Type.Unknown,
-                arguments = emptyMap()  // fixme
+                returnType = returnType,
+                arguments = args.toMap()
             )
         }
         .onEach { println(it) }
@@ -80,5 +82,21 @@ data class FunctionData(
 enum class Type {
     String, Int, Double, // TODO
 
-    Unknown     // fixme
+    Unknown;     // fixme
+
+    companion object
+}
+
+private fun Type.Companion.from(value: InputValue) = when (value) {
+    is InputValue.StringValue -> Type.String
+    is InputValue.IntValue -> Type.Int
+    is InputValue.DoubleValue -> Type.Double
+    else -> error("Unknown type for input value: ${value::class}")
+}
+
+private fun Type.Companion.from(value: ExpectedValue) = when (value) {
+    is ExpectedValue.StringValue -> Type.String
+    is ExpectedValue.IntValue -> Type.Int
+    is ExpectedValue.DoubleValue -> Type.Double
+    else -> error("Unknown type for expected value: ${value::class}")
 }
