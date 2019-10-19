@@ -13,7 +13,8 @@ fun main() {
 private fun execute(assetsDir: File, sourceDir: File, outDir: File) {
     println("Loading exercises...")
 
-    loadExercisesData(sourceDir)
+    //loadExercisesData(sourceDir)
+    loadExercisesData()
         .forEach { generateExercise(assetsDir, outDir, it) }
 
     println("Done!")

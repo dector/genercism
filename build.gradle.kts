@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version Versions.kotlin
+    kotlin("kapt") version Versions.kotlin
 }
 
 dependencies {
@@ -11,6 +12,9 @@ dependencies {
     implementation(Deps.moshi)
     implementation(Deps.moshi_kotlin)
     //implementation(Deps.kotlinpoet)
+
+    implementation(Deps.autodsl)
+    kapt(Deps.autodsl_processor)
 
     testImplementation(Deps.kotlin_test)
 }
