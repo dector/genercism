@@ -91,27 +91,27 @@ private fun writeBuildGradleSource(outDir: File) {
     val file = outDir.resolve("build.gradle")
     val content = """
         |plugins {
-        |  id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+        |    id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
         |}
         |
         |repositories {
-        |  jcenter()
+        |    jcenter()
         |}
         |
         |dependencies {
-        |  implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+        |    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
         |
-        |  testImplementation 'org.junit.jupiter:junit-jupiter-api:$junitVersion'
-        |  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junitVersion'
+        |    testImplementation 'org.junit.jupiter:junit-jupiter-api:$junitVersion'
+        |    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junitVersion'
         |}
         |
         |test {
-        |  useJUnitPlatform()
-        |  testLogging {
-        |    exceptionFormat = 'full'
-        |    events = ["passed", "failed", "skipped"]
-        |  }
-        |  failFast = true
+        |    useJUnitPlatform()
+        |    testLogging {
+        |        exceptionFormat = 'full'
+        |        events = ["passed", "failed", "skipped"]
+        |    }
+        |    failFast = true
         |}
         |
     """.trimMargin()
