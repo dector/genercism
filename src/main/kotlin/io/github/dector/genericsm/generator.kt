@@ -29,6 +29,7 @@ private fun writeExerciseSources(outDir: File, meta: ExerciseMeta) {
 
     fun generateExerciseFile(exercise: ExerciseData): String = buildString {
         appendln(exercise.content)
+        appendln()
     }
 
     val exercise = meta.data.exercise
@@ -66,12 +67,13 @@ private fun writeTestSources(outDir: File, meta: ExerciseMeta) {
 
         return """
            |${imports()}
-           | 
+           |
            |@TestMethodOrder(OrderAnnotation::class)
            |class ${tests.name} {
            |
            |${tests().indent()}
            |}
+           |
         """.trimMargin()
     }
 
@@ -111,6 +113,7 @@ private fun writeBuildGradleSource(outDir: File) {
         |  }
         |  failFast = true
         |}
+        |
     """.trimMargin()
 
     file.writeText(content)
