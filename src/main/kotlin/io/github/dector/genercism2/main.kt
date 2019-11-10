@@ -4,6 +4,9 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import io.github.dector.genercism2.Config.ExercisesToProcess.All
 import io.github.dector.genercism2.Config.ExercisesToProcess.Only
+import io.github.dector.genercism2.TestCall.AResult
+import io.github.dector.genercism2.TestCall.AValue
+import io.github.dector.genercism2.TestCall.AValue.AString
 import java.io.File
 
 fun main() {
@@ -97,7 +100,9 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
         return ImprovedExerciseSpecification(
             slug = spec.exercise,
             version = spec.version,
-            testCases = spec.cases.map(::convertTestCase)
+            testCases = spec.cases.map(::convertTestCase),
+
+            exerciseClassName = spec.exercise.asClassName()
         )
     }
 
@@ -106,13 +111,13 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
 }
 
 fun ExerciseTestCase.asTestCall(): TestCall {
-    val arguments: Map<String, TestCall.AValue> = when {
+    val arguments: Map<String, AValue> = when {
         input.isEmpty() -> emptyMap()
         else -> TODO()
     }
 
-    val result: TestCall.AValue = when {
-        expected is String -> TestCall.AValue.AString(expected)
+    val result: AResult = when {
+        expected is String -> AResult.Success(AString(expected))
         else -> TODO()
     }
 
@@ -130,17 +135,28 @@ fun generateExercises(config: Config, specifications: List<ImprovedExerciseSpeci
         .adapter(ImprovedExerciseSpecification::class.java)
         .indent("  ")
 
-    fun generateExercise(specification: ImprovedExerciseSpecification) {
+    fun generateExercise(spec: ImprovedExerciseSpecification) {
+        val dir = config.generatedExercisesDir
+            .resolve(spec.slug)
+            .also { it.mkdirs() }
+
+        writeBuildGradleSource(dir)
+        writeSources(dir, spec)
+        writeTestSources(dir, spec)
+    }
+
+    fun generateExerciseDebugJson(specification: ImprovedExerciseSpecification) {
         val dir = config.generatedExercisesDir
             .resolve(specification.slug)
             .also { it.mkdirs() }
 
-        val testFile = dir.resolve("test_result.json")
+        val testFile = dir.resolve("__debug.json")
         moshi.toJson(specification)
             .let { testFile.writeText(it) }
     }
 
     specifications
+        .onEach(::generateExerciseDebugJson)
         .forEach(::generateExercise)
 }
 
@@ -160,7 +176,10 @@ data class ExerciseTestCase(
 data class ImprovedExerciseSpecification(
     val slug: String,
     val version: String,
-    val testCases: List<ImprovedTestCase>
+    val testCases: List<ImprovedTestCase>,
+
+    val exerciseClassName: String,
+    val testClassName: String = "${exerciseClassName}Test"
 )
 
 data class ImprovedTestCase(
@@ -172,20 +191,41 @@ data class ImprovedTestCase(
 data class TestCall(
     val functionName: String,
     val arguments: Map<String, AValue>,
-    val result: AValue
+    val result: AResult
 ) {
+
+    sealed class AResult {
+//        data class Exception(val e: Throwable) : AResult()
+        data class Exception(val implementMe: String = "NotImplemented") : AResult()
+        data class Success(val value: AValue) : AResult()
+    }
 
     sealed class AValue {
         data class AString(val value: String) : AValue()
     }
 }
 
+fun AValue.stringify(): String = when (this) {
+    is AString -> "\"$value\""
+    else -> TODO()
+}
+
 fun String.simplifyForName() = this
     .toLowerCase()
     .filter { it.isLetterOrDigit() || it == ' ' }
 
+fun String.asClassName() = this
+    .toLowerCase()
+    .filter { it.isLetterOrDigit() || it == '-' }
+    .split('-')
+    .joinToString("") { it.capitalize() }
+
 fun moshi() = Moshi.Builder()
-    .add(PolymorphicJsonAdapterFactory.of(TestCall.AValue::class.java, "__type")
-        .withSubtype(TestCall.AValue.AString::class.java, TestCall.AValue.AString::class.java.simpleName)
+    .add(PolymorphicJsonAdapterFactory.of(AResult::class.java, "__type")
+        .withSubtype(AResult.Success::class.java, AResult.Success::class.java.simpleName)
+        .withSubtype(AResult.Exception::class.java, AResult.Exception::class.java.simpleName)
+    )
+    .add(PolymorphicJsonAdapterFactory.of(AValue::class.java, "__type")
+        .withSubtype(AString::class.java, AString::class.java.simpleName)
     )
     .build()
