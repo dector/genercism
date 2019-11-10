@@ -42,7 +42,8 @@ private fun execute(config: Config) {
     // Stage 2: Convert specifications to improved format
     val improvedSpecifications = preProcessSpecifications(specifications)
 
-//    generateExercise()
+    // Stage 3: Generate exercises
+    generateExercise(config, improvedSpecifications)
 }
 
 data class Config(
@@ -85,6 +86,10 @@ fun loadSpecifications(config: Config): List<ExerciseSpecification> {
 fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<ImprovedExerciseSpecification> {
     // TODO
     return emptyList()
+}
+
+fun generateExercise(config: Config, specifications: List<ImprovedExerciseSpecification>) {
+    // TODO
 }
 
 data class ExerciseSpecification(
