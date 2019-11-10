@@ -1,5 +1,6 @@
 package io.github.dector.genercism2
 
+import io.github.dector.genercism2.FunctionCall.AType
 import java.io.File
 
 fun writeSources(rootDir: File, spec: ImprovedExerciseSpecification) {
@@ -9,9 +10,24 @@ fun writeSources(rootDir: File, spec: ImprovedExerciseSpecification) {
 }
 
 fun generateSourceFileContent(spec: ImprovedExerciseSpecification): String {
-    return """
-        TODO()
-    """.trimIndent()
+    fun functions() = spec
+        .exercise
+        .functions
+        .joinToString("\n\n") { func ->
+            "fun ${func.stringifySignature()} = TODO()"
+        }
+
+    fun fileContent() = run {
+        val className = spec.exerciseClassName
+        """
+            |class ${className} {
+            |
+            |${functions().indent()}
+            |}
+        """.trimMargin()
+    }
+
+    return fileContent()
 }
 
 fun writeTestSources(rootDir: File, spec: ImprovedExerciseSpecification) {
@@ -134,6 +150,25 @@ fun ImprovedTestCase.stringifyCall() = buildString {
         else -> TODO()
     }
     append(")")
+}
 
+fun FunctionCall.stringifySignature() = buildString {
+    append(functionName)
 
+    append("(")
+    arguments.entries.joinToString { (name, type) ->
+        "$name: ${type.stringify()}"
+    }.let { append(it) }
+    append(")")
+
+    if (resultType != AType.AUnit) {
+        append(": ")
+        append(resultType.stringify())
+    }
+}
+
+fun AType.stringify(): String = when (this) {
+    AType.AString -> "String"
+    AType.AUnit -> "Unit"
+    else -> TODO()
 }

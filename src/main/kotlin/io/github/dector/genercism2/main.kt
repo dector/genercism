@@ -4,6 +4,8 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import io.github.dector.genercism2.Config.ExercisesToProcess.All
 import io.github.dector.genercism2.Config.ExercisesToProcess.Only
+import io.github.dector.genercism2.FunctionCall.AType
+import io.github.dector.genercism2.FunctionCall.AType.AUnit
 import io.github.dector.genercism2.TestCall.AResult
 import io.github.dector.genercism2.TestCall.AValue
 import io.github.dector.genercism2.TestCall.AValue.AString
@@ -97,9 +99,37 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
     }
 
     fun convertSpecification(spec: ExerciseSpecification): ImprovedExerciseSpecification {
+        fun exercise(spec: ExerciseSpecification): ImprovedExercise {
+            fun args(case: ExerciseTestCase) = case
+                .input
+                .map { (name, value) ->
+                    name to when (value) {
+                        is String -> AType.AString
+                        else -> TODO()
+                    }
+                }
+                .toMap()
+
+            val funcs = spec.cases.map { case ->
+                FunctionCall(
+                    functionName = case.property,
+                    arguments = args(case),
+                    resultType = when (case.expected) {
+                        is String -> AType.AString
+                        else -> TODO()
+                    }
+                )
+            }
+
+            return ImprovedExercise(
+                functions = funcs
+            )
+        }
+
         return ImprovedExerciseSpecification(
             slug = spec.exercise,
             version = spec.version,
+            exercise = exercise(spec),
             testCases = spec.cases.map(::convertTestCase),
 
             exerciseClassName = spec.exercise.asClassName()
@@ -176,11 +206,30 @@ data class ExerciseTestCase(
 data class ImprovedExerciseSpecification(
     val slug: String,
     val version: String,
+    val exercise: ImprovedExercise,
     val testCases: List<ImprovedTestCase>,
 
     val exerciseClassName: String,
     val testClassName: String = "${exerciseClassName}Test"
 )
+
+data class ImprovedExercise(
+    //val hasEnclosedClass: Boolean
+
+    val functions: List<FunctionCall>
+)
+
+data class FunctionCall(
+    val functionName: String,
+    val arguments: Map<String, AType>,
+    val resultType: AType
+) {
+
+    sealed class AType {
+        object AString : AType()
+        object AUnit : AType()
+    }
+}
 
 data class ImprovedTestCase(
     val name: String,
@@ -195,7 +244,8 @@ data class TestCall(
 ) {
 
     sealed class AResult {
-//        data class Exception(val e: Throwable) : AResult()
+        //        data class Exception(val e: Throwable) : AResult()
+
         data class Exception(val implementMe: String = "NotImplemented") : AResult()
         data class Success(val value: AValue) : AResult()
     }
@@ -221,6 +271,10 @@ fun String.asClassName() = this
     .joinToString("") { it.capitalize() }
 
 fun moshi() = Moshi.Builder()
+    .add(PolymorphicJsonAdapterFactory.of(AType::class.java, "__type")
+        .withSubtype(AType.AString::class.java, AString::class.java.simpleName)
+        .withSubtype(AType.AUnit::class.java, AUnit::class.java.simpleName)
+    )
     .add(PolymorphicJsonAdapterFactory.of(AResult::class.java, "__type")
         .withSubtype(AResult.Success::class.java, AResult.Success::class.java.simpleName)
         .withSubtype(AResult.Exception::class.java, AResult.Exception::class.java.simpleName)
