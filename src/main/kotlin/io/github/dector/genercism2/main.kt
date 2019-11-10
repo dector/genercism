@@ -1,6 +1,7 @@
 package io.github.dector.genercism2
 
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.adapters.PolymorphicJsonAdapterFactory
 import io.github.dector.genercism2.Config.ExercisesToProcess.All
 import io.github.dector.genercism2.Config.ExercisesToProcess.Only
 import java.io.File
@@ -87,7 +88,8 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
     fun convertTestCase(case: ExerciseTestCase): ImprovedTestCase {
         return ImprovedTestCase(
             name = case.description.simplifyForName(),
-            description = case.description
+            description = case.description,
+            call = case.asTestCall()
         )
     }
 
@@ -103,10 +105,29 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
         .map(::convertSpecification)
 }
 
+fun ExerciseTestCase.asTestCall(): TestCall {
+    val arguments: Map<String, TestCall.AValue> = when {
+        input.isEmpty() -> emptyMap()
+        else -> TODO()
+    }
+
+    val result: TestCall.AValue = when {
+        expected is String -> TestCall.AValue.AString(expected)
+        else -> TODO()
+    }
+
+    return TestCall(
+        functionName = property,
+        arguments = arguments,
+        result = result
+    )
+}
+
 fun generateExercises(config: Config, specifications: List<ImprovedExerciseSpecification>) {
     // TODO
 
-    val moshi = moshi().adapter(ImprovedExerciseSpecification::class.java)
+    val moshi = moshi()
+        .adapter(ImprovedExerciseSpecification::class.java)
         .indent("  ")
 
     fun generateExercise(specification: ImprovedExerciseSpecification) {
@@ -144,11 +165,27 @@ data class ImprovedExerciseSpecification(
 
 data class ImprovedTestCase(
     val name: String,
-    val description: String
+    val description: String,
+    val call: TestCall
 )
+
+data class TestCall(
+    val functionName: String,
+    val arguments: Map<String, AValue>,
+    val result: AValue
+) {
+
+    sealed class AValue {
+        data class AString(val value: String) : AValue()
+    }
+}
 
 fun String.simplifyForName() = this
     .toLowerCase()
     .filter { it.isLetterOrDigit() || it == ' ' }
 
-fun moshi() = Moshi.Builder().build()
+fun moshi() = Moshi.Builder()
+    .add(PolymorphicJsonAdapterFactory.of(TestCall.AValue::class.java, "__type")
+        .withSubtype(TestCall.AValue.AString::class.java, TestCall.AValue.AString::class.java.simpleName)
+    )
+    .build()

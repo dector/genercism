@@ -3,6 +3,7 @@ object Deps {
     const val kotlin_test = "io.kotlintest:kotlintest-runner-junit5:${Versions.kotlin_test}"
 
     const val moshi = "com.squareup.moshi:moshi:${Versions.moshi}"
+    const val moshi_adapters = "com.squareup.moshi:moshi-adapters:${Versions.moshi}"
     const val moshi_kotlin = "com.squareup.moshi:moshi-kotlin:${Versions.moshi}"
     const val hjson = "org.hjson:hjson:${Versions.hjson}"
 
