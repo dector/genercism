@@ -14,6 +14,7 @@ import java.io.File
 fun main() {
     val config = Config(
         specificationsRepo = File("data/v2/specifications"),
+        assetsDir = File("data/v2/assets"),
         generatedExercisesDir = File("generated-exercises/v2"),
         exercisesToProcess = Only(
             "hello-world"
@@ -46,14 +47,17 @@ private fun execute(config: Config) {
     println("Loaded ${specifications.size} specification(s).")
 
     // Stage 2: Convert specifications to improved format
+    println("Converting...")
     val improvedSpecifications = preProcessSpecifications(specifications)
 
     // Stage 3: Generate exercises
+    println("Generating...")
     generateExercises(config, improvedSpecifications)
 }
 
 data class Config(
     val specificationsRepo: File,
+    val assetsDir: File,
     val generatedExercisesDir: File,
     val exercisesToProcess: ExercisesToProcess
 ) {
@@ -159,8 +163,6 @@ fun ExerciseTestCase.asTestCall(): TestCall {
 }
 
 fun generateExercises(config: Config, specifications: List<ImprovedExerciseSpecification>) {
-    // TODO
-
     val moshi = moshi()
         .adapter(ImprovedExerciseSpecification::class.java)
         .indent("  ")
@@ -173,6 +175,7 @@ fun generateExercises(config: Config, specifications: List<ImprovedExerciseSpeci
         writeBuildGradleSource(dir)
         writeSources(dir, spec)
         writeTestSources(dir, spec)
+        copyAssets(assetsDir = config.assetsDir, outDir = dir)
     }
 
     fun generateExerciseDebugJson(specification: ImprovedExerciseSpecification) {
@@ -186,6 +189,7 @@ fun generateExercises(config: Config, specifications: List<ImprovedExerciseSpeci
     }
 
     specifications
+        .onEach { println("\n'${it.slug}':") }
         .onEach(::generateExerciseDebugJson)
         .forEach(::generateExercise)
 }

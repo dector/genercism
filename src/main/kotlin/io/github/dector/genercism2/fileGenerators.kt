@@ -74,6 +74,8 @@ fun writeBuildGradleSource(outDir: File) {
 
     val file = outDir.resolve("build.gradle.kts")
     val content = """
+        |import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+        |
         |plugins {
         |    kotlin("jvm") version "${kotlinVersion}"
         |}
@@ -89,10 +91,10 @@ fun writeBuildGradleSource(outDir: File) {
         |    testImplementation(kotlin("test-junit"))
         |}
         |
-        |test {
+        |tasks.withType<Test> {
         |    testLogging {
-        |        exceptionFormat = 'full'
-        |        events = ["passed", "failed", "skipped"]
+        |        exceptionFormat = TestExceptionFormat.FULL
+        |        events("passed", "failed", "skipped")
         |    }
         |}
         |
