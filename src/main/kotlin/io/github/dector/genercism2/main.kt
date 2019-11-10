@@ -43,7 +43,7 @@ private fun execute(config: Config) {
     val improvedSpecifications = preProcessSpecifications(specifications)
 
     // Stage 3: Generate exercises
-    generateExercise(config, improvedSpecifications)
+    generateExercises(config, improvedSpecifications)
 }
 
 data class Config(
@@ -61,8 +61,7 @@ data class Config(
 }
 
 fun loadSpecifications(config: Config): List<ExerciseSpecification> {
-    val moshi = Moshi.Builder()
-        .build()
+    val moshi = moshi()
     val adapter = moshi.adapter(ExerciseSpecification::class.java)
 
     val files = config.specificationsRepo
@@ -87,6 +86,7 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
 
     fun convertTestCase(case: ExerciseTestCase): ImprovedTestCase {
         return ImprovedTestCase(
+            name = case.description.simplifyForName(),
             description = case.description
         )
     }
@@ -103,8 +103,24 @@ fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<
         .map(::convertSpecification)
 }
 
-fun generateExercise(config: Config, specifications: List<ImprovedExerciseSpecification>) {
+fun generateExercises(config: Config, specifications: List<ImprovedExerciseSpecification>) {
     // TODO
+
+    val moshi = moshi().adapter(ImprovedExerciseSpecification::class.java)
+        .indent("  ")
+
+    fun generateExercise(specification: ImprovedExerciseSpecification) {
+        val dir = config.generatedExercisesDir
+            .resolve(specification.slug)
+            .also { it.mkdirs() }
+
+        val testFile = dir.resolve("test_result.json")
+        moshi.toJson(specification)
+            .let { testFile.writeText(it) }
+    }
+
+    specifications
+        .forEach(::generateExercise)
 }
 
 data class ExerciseSpecification(
@@ -127,5 +143,12 @@ data class ImprovedExerciseSpecification(
 )
 
 data class ImprovedTestCase(
+    val name: String,
     val description: String
 )
+
+fun String.simplifyForName() = this
+    .toLowerCase()
+    .filter { it.isLetterOrDigit() || it == ' ' }
+
+fun moshi() = Moshi.Builder().build()
