@@ -84,8 +84,23 @@ fun loadSpecifications(config: Config): List<ExerciseSpecification> {
 }
 
 fun preProcessSpecifications(specifications: List<ExerciseSpecification>): List<ImprovedExerciseSpecification> {
-    // TODO
-    return emptyList()
+
+    fun convertTestCase(case: ExerciseTestCase): ImprovedTestCase {
+        return ImprovedTestCase(
+            description = case.description
+        )
+    }
+
+    fun convertSpecification(spec: ExerciseSpecification): ImprovedExerciseSpecification {
+        return ImprovedExerciseSpecification(
+            slug = spec.exercise,
+            version = spec.version,
+            testCases = spec.cases.map(::convertTestCase)
+        )
+    }
+
+    return specifications
+        .map(::convertSpecification)
 }
 
 fun generateExercise(config: Config, specifications: List<ImprovedExerciseSpecification>) {
@@ -101,8 +116,16 @@ data class ExerciseSpecification(
 data class ExerciseTestCase(
     val description: String,
     val property: String,
-    val input: Any, // TODO
+    val input: Map<String, Any?>,
     val expected: String
 )
 
-data class ImprovedExerciseSpecification(val none: Nothing)
+data class ImprovedExerciseSpecification(
+    val slug: String,
+    val version: String,
+    val testCases: List<ImprovedTestCase>
+)
+
+data class ImprovedTestCase(
+    val description: String
+)
