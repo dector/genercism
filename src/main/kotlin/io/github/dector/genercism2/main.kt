@@ -40,7 +40,7 @@ private fun execute(config: Config) {
     println("Loaded ${specifications.size} specification(s).")
 
     // Stage 2: Convert specifications to improved format
-    val improvedSpecifications = preProcessSpecifications()
+    val improvedSpecifications = preProcessSpecifications(specifications)
 
 //    generateExercise()
 }
@@ -99,3 +99,5 @@ data class ExerciseTestCase(
     val input: Any, // TODO
     val expected: String
 )
+
+data class ImprovedExerciseSpecification(val none: Nothing)

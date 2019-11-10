@@ -12,5 +12,8 @@ build/
 # Kotlin test
 .kotlintest/
 
+# Specifications link
+data/v2/specifications
+
 # Generated exercises
 generated-exercises/
