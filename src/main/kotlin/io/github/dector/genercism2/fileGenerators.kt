@@ -18,13 +18,14 @@ fun generateSourceFileContent(spec: ImprovedExerciseSpecification): String {
         }
 
     fun fileContent() = run {
-        val className = spec.exerciseClassName
+        /*val className = spec.exerciseClassName
         """
             |class ${className} {
             |
             |${functions().indent()}
             |}
-        """.trimMargin()
+        """.trimMargin()*/
+        functions()
     }
 
     return fileContent()
@@ -38,11 +39,8 @@ fun writeTestSources(rootDir: File, spec: ImprovedExerciseSpecification) {
 
 fun generateTestFileContent(spec: ImprovedExerciseSpecification): String {
     fun imports() = listOf(
-        "org.junit.jupiter.api.Test",
-        "org.junit.jupiter.api.Order",
-        "org.junit.jupiter.api.TestMethodOrder",
-        "org.junit.jupiter.api.MethodOrderer.OrderAnnotation",
-        "org.junit.jupiter.api.Assertions.*")
+        "org.junit.Test",
+        "kotlin.test.*")
         .sorted()
         .joinToString("\n") { "import $it" }
 
@@ -51,18 +49,16 @@ fun generateTestFileContent(spec: ImprovedExerciseSpecification): String {
         .withIndex()
         .joinToString("\n\n") { (i, entry) ->
             """
-                    |@Test
-                    |@Order($i)
-                    |fun `${entry.name}`() {
-                    |${entry.content().indent()}
-                    |}
-                """.trimMargin()
+                |@Test
+                |fun `${entry.name}`() {
+                |${entry.content().indent()}
+                |}
+            """.trimMargin()
         }
 
     return """
            |${imports()}
            |
-           |@TestMethodOrder(OrderAnnotation::class)
            |class ${spec.testClassName} {
            |
            |${tests().indent()}
@@ -74,12 +70,12 @@ fun generateTestFileContent(spec: ImprovedExerciseSpecification): String {
 fun writeBuildGradleSource(outDir: File) {
     println("  generating build file...")
     val kotlinVersion = "1.3.50"
-    val junitVersion = "5.5.1"
+    val junitVersion = "4.12"
 
-    val file = outDir.resolve("build.gradle")
+    val file = outDir.resolve("build.gradle.kts")
     val content = """
         |plugins {
-        |    id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
+        |    kotlin("jvm") version "${kotlinVersion}"
         |}
         |
         |repositories {
@@ -87,19 +83,17 @@ fun writeBuildGradleSource(outDir: File) {
         |}
         |
         |dependencies {
-        |    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+        |    implementation(kotlin("stdlib"))
         |
-        |    testImplementation 'org.junit.jupiter:junit-jupiter-api:$junitVersion'
-        |    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:$junitVersion'
+        |    testImplementation("junit:junit:$junitVersion")
+        |    testImplementation(kotlin("test-junit"))
         |}
         |
         |test {
-        |    useJUnitPlatform()
         |    testLogging {
         |        exceptionFormat = 'full'
         |        events = ["passed", "failed", "skipped"]
         |    }
-        |    failFast = true
         |}
         |
     """.trimMargin()
