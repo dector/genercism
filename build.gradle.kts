@@ -11,6 +11,7 @@ dependencies {
 
     implementation(Deps.moshi)
     implementation(Deps.moshi_kotlin)
+    implementation(Deps.hjson)
     //implementation(Deps.kotlinpoet)
 
     implementation(Deps.autodsl)

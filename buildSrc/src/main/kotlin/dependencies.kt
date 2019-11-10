@@ -4,6 +4,7 @@ object Deps {
 
     const val moshi = "com.squareup.moshi:moshi:${Versions.moshi}"
     const val moshi_kotlin = "com.squareup.moshi:moshi-kotlin:${Versions.moshi}"
+    const val hjson = "org.hjson:hjson:${Versions.hjson}"
 
     const val autodsl = "com.juanchosaravia.autodsl:annotation:${Versions.autodsl}"
     const val autodsl_processor = "com.juanchosaravia.autodsl:processor:${Versions.autodsl}"
@@ -16,6 +17,7 @@ object Versions {
     const val kotlin_test = "3.4.2"
 
     const val moshi = "1.8.0"
+    const val hjson = "3.0.0"
     const val autodsl = "0.0.9"
     //const val kotlinepoet = "1.4.0"
 }
